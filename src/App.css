@@ -1,38 +1,123 @@
+:root {
+  /* پس‌زمینه‌ی اصلی کل اپ (بدنه‌ی صفحه) */
+  --color-bg: #0b1020;
+
+  /* سطح کارت‌ها و پنل‌ها (Process، Settings، Metrics، Timeline) */
+  --color-surface: #12172a;
+
+  /* سطح ثانویه کارت‌ها (هدر کارت، بخش‌های داخلی، جداکننده‌ها) */
+  --color-surface-alt: #181e36;
+
+  /* رنگ اکشن اصلی (دکمه Run، انتخاب الگوریتم، المان فعال) */
+  --color-accent: #4f7cff;
+
+  /* اکشن قوی‌تر (Hover دکمه‌ها، Active State) */
+  --color-accent-strong: #3a63e8;
+
+  /* خطا و هشدار (ورودی اشتباه، پیام Error، وضعیت نامعتبر) */
+  --color-danger: #e5484d;
+
+  /* متن اصلی (عناوین، مقادیر، نوشته‌های مهم) */
+  --color-text: #e8ecf8;
+
+  /* متن کم‌اهمیت (label، توضیح، subtitle، hint) */
+  --color-text-muted: #9aa4c7;
+
+  /* خط جداکننده و Border کارت‌ها و پنل‌ها */
+  --color-border: #232b4a;
+}
+
 .App {
-  text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
   min-height: 100vh;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+  gap: 24px;
+}
+
+.app-header {
+  padding: 20px 24px;
+  background: linear-gradient(
+    180deg,
+    var(--color-surface-alt),
+    var(--color-bg)
+  );
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+/* ===============================
+   Algorithm Selector
+   =============================== */
+
+.algorithm-container {
+  background: var(--color-surface);
+  padding: 20px;
+  border-radius: 16px;
   color: white;
+  width: 100%;
 }
 
-.App-link {
-  color: #61dafb;
+.algorithm-title {
+  font-size: 14px;
+  opacity: 0.85;
+  margin-bottom: 16px;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.algorithm-body {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.left-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.right-content {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.algorithm-section,
+.flags,
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+select,
+input {
+  background: var(--color-bg);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+
+.run-btn {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.run-btn:hover {
+  opacity: 0.9;
 }
