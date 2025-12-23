@@ -42,12 +42,12 @@ CS : Context Switch
 IDLE : CPU idle time
 
 Project Structure
-
+```js
 src/
 ├─ algorithms/   // Scheduling algorithms
 ├─ components/   // React UI components
 ├─ utils/        // Shared utilities (timeline, metrics, etc.)
-
+```
 Technologies
 React
 
