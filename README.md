@@ -28,12 +28,13 @@ CPU scheduling strategies work.
 
 All scheduling algorithms output a unified timeline structure:
 
-````js
+```js
 {
   label: "P1" | "CS" | "IDLE",
   start: Number,
   end: Number
 }
+```
 P1, P2, ... : Process execution
 
 CS : Context Switch
@@ -46,6 +47,7 @@ src/
 ├─ algorithms/   // Scheduling algorithms
 ├─ components/   // React UI components
 ├─ utils/        // Shared utilities (timeline, metrics, etc.)
+
 Technologies
 React
 
@@ -53,7 +55,7 @@ JavaScript (ES6+)
 
 Git & GitHub
 
-Author
+Author soheil-noori
 Student project – CPU Scheduling Simulation
 
 
