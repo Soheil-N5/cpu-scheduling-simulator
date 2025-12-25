@@ -1,5 +1,7 @@
 import './App.css';
-import { useState } from 'react';
+import { Toaster } from "react-hot-toast";
+
+import { useState,useEffect } from 'react';
 import AlgorithmSelector from './components/AlgorithmSelector';
 function App() {
 const [processes,setProcesses] = useState([]);//list
@@ -11,8 +13,34 @@ const [settings,setSettings]=useState({
 });//object cs , qtime , queue config
 const [timeline,setTimeline]=useState([]);//list
 const [metrics,setMetrics]=useState(null);//object
+useEffect(() => {
+  console.log(algorithm);
+}, [algorithm]);
 
-  return (
+  return (<>
+  <Toaster
+  position="top-right"
+  toastOptions={{
+    style: {
+      background: "#181e36",
+      color: "#e8ecf8",
+      border: "1px solid #232b4a",
+      fontSize: "13px",
+    },
+    success: {
+      iconTheme: {
+        primary: "#4f7cff",
+        secondary: "#fff",
+      },
+    },
+    error: {
+      iconTheme: {
+        primary: "#e5484d",
+        secondary: "#fff",
+      },
+    },
+  }}
+/>
 <div className="App">
   <header className="app-header">
     <h1>CPU Scheduling Visualizer</h1>
@@ -22,7 +50,7 @@ const [metrics,setMetrics]=useState(null);//object
   <AlgorithmSelector algorithm={algorithm} setAlgorithm={setAlgorithm} setSettings={setSettings}/>
   </main>
 </div>
-
+</>
   );
 }
 
