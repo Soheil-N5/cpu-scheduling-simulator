@@ -1,7 +1,7 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-export default function AlgorithmSelector({ setAlgorithm }) {
+export default function AlgorithmSelector({ setAlgorithm,setSettings }) {
   const [preemptive, setPreemptive] = useState(false);
   const [contextSwitch, setContextSwitch] = useState("");
   const [timeQuantum, setTimeQuantum] = useState("");
@@ -51,7 +51,7 @@ export default function AlgorithmSelector({ setAlgorithm }) {
   };
 
   return (
-    <div className="algorithm-container">
+    <div className="section-container">
       <div className="left-content">
         <label>Algorithm</label>
         <select onChange={changeAlgorithm}>

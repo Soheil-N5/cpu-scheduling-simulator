@@ -3,8 +3,29 @@ import { Toaster } from "react-hot-toast";
 
 import { useState,useEffect } from 'react';
 import AlgorithmSelector from './components/AlgorithmSelector';
+import ProcessEditor from './components/ProcessEditor';
 function App() {
-const [processes,setProcesses] = useState([]);//list
+const [processes,setProcesses] = useState([
+{
+  id:1,
+  arrivalTime:0,
+  burstTime:0,
+  remaningTime:0,
+  state:"new"
+},{
+  id:3,
+  arrivalTime:0,
+  burstTime:0,
+  remaningTime:0,
+  state:"new"
+},{
+  id:2,
+  arrivalTime:0,
+  burstTime:0,
+  remaningTime:0,
+  state:"new"
+}
+]);//list
 const [algorithm,setAlgorithm]=useState("");//string
 const [settings,setSettings]=useState({
   "contextSwitch":0,
@@ -48,6 +69,7 @@ useEffect(() => {
 
   <main className="container">
   <AlgorithmSelector algorithm={algorithm} setAlgorithm={setAlgorithm} setSettings={setSettings}/>
+  <ProcessEditor processes={processes} setProcesses={setProcesses}/>
   </main>
 </div>
 </>
