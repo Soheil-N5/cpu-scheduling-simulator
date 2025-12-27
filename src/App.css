@@ -238,7 +238,6 @@ p {
   align-items: center;
 }
 
-
 .process-editor__add-btn {
   background: var(--color-surface-alt);
   border: 1px solid var(--color-border);
@@ -335,4 +334,83 @@ p {
 .process-row__remove-btn:hover {
   background: rgba(229, 72, 77, 0.2);
   border-color: rgba(229, 72, 77, 0.5);
-} 
+}
+/*
+   Gantt Chart
+ */
+
+.ganttchart {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  padding: 12px;
+
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+
+  overflow-x: auto;
+}
+.gantt-section{
+  display:flex;
+  flex-direction:column;
+  gap:18px
+}
+.gantt-block {
+  position: relative;
+  height: 32px;
+  min-width: 16px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+
+  background: var(--color-surface);
+  color: var(--color-text);
+
+  white-space: nowrap;
+}
+
+.gantt-label {
+  pointer-events: none;
+}
+
+.gantt-time-start,
+.gantt-time-end {
+  position: absolute;
+  top: -14px;
+  font-size: 10px;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.gantt-time-start {
+  left: 0;
+}
+
+.gantt-time-end {
+  right: 0;
+}
+
+.gantt-block.process {
+  background: rgba(79, 124, 255, 0.15);
+  border-color: rgba(79, 124, 255, 0.4);
+  color: #cfd8ff;
+}
+
+.gantt-block.cs {
+  background: #9aa4c7;
+  border-color: #7f88a8;
+  color: #111;
+}
+
+.gantt-block.idle {
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+}

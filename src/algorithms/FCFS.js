@@ -1,4 +1,7 @@
-export function fcfs(processes, settings) {
+export function fcfs({
+    processes,
+    settings
+}) {
     const list = [...processes]
     list.sort((a, b) => a.arrivalTime - b.arrivalTime);
     let time = 0
@@ -12,13 +15,23 @@ export function fcfs(processes, settings) {
             });
             time = p.arrivalTime
         }
+
         timeline.push({
             label: `P${p.id}`,
             start: time,
             end: time + p.burstTime,
 
         })
-        time += p.burstTime
+        time += p.burstTime;
+        if (settings.contextSwitch > 0) {
+            timeline.push({
+                label: `CS`,
+                start: time,
+                end: time + Number(settings.contextSwitch),
+
+            })
+            time += Number(settings.contextSwitch)
+        }
 
     }
     return {

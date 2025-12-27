@@ -1,10 +1,12 @@
 import { useState } from "react";
-import toast from "react-hot-toast";
 
-export default function AlgorithmSelector({ setAlgorithm,setSettings }) {
+export default function AlgorithmSelector({
+  setAlgorithm,
+  setSettings,
+  handleRun,
+  settings,
+}) {
   const [preemptive, setPreemptive] = useState(false);
-  const [contextSwitch, setContextSwitch] = useState("");
-  const [timeQuantum, setTimeQuantum] = useState("");
 
   const algorithms = [
     { value: "fcfs", label: "FCFS" },
@@ -22,34 +24,6 @@ export default function AlgorithmSelector({ setAlgorithm,setSettings }) {
     setPreemptive(value === "rr");
   };
 
-  const handleRun = () => {
-    if (contextSwitch === "") {
-      toast.error("Context Switch is required");
-      return;
-    }
-
-    if (Number(contextSwitch) < 0) {
-      toast.error("Context Switch must be ≥ 0");
-      return;
-    }
-
-    if (preemptive) {
-      if (timeQuantum === "") {
-        toast.error("Time Quantum is required for Round Robin");
-        return;
-      }
-
-      if (Number(timeQuantum) < 1) {
-        toast.error("Time Quantum must be ≥ 1");
-        return;
-      }
-    }
-
-    toast.success("Simulation started 🚀");
-
-    
-  };
-
   return (
     <div className="section-container">
       <div className="left-content">
@@ -64,12 +38,12 @@ export default function AlgorithmSelector({ setAlgorithm,setSettings }) {
 
         <div className="tags">
           <span className="tag accent">
-            Context Switch: <strong>{contextSwitch || "-"}</strong>
+            Context Switch: <strong>{settings.contextSwitch || "-"}</strong>
           </span>
 
           {preemptive && (
             <span className="tag accent">
-              Time Quantum: <strong>{timeQuantum || "-"}</strong>
+              Time Quantum: <strong>{settings.timeQuantum || "-"}</strong>
             </span>
           )}
         </div>
@@ -81,10 +55,14 @@ export default function AlgorithmSelector({ setAlgorithm,setSettings }) {
             type="text"
             inputMode="numeric"
             placeholder=" "
-            value={contextSwitch}
+            value={settings.contextSwitch}
             onChange={(e) => {
               const v = e.target.value;
-              if (/^\d*$/.test(v)) setContextSwitch(v);
+              if (/^\d*$/.test(v))
+                setSettings((prev) => ({
+                  ...prev,
+                  contextSwitch: Number(v),
+                }));
             }}
           />
           <label>Context Switch</label>
@@ -96,10 +74,14 @@ export default function AlgorithmSelector({ setAlgorithm,setSettings }) {
               type="text"
               inputMode="numeric"
               placeholder=" "
-              value={timeQuantum}
+              value={settings.timeQuantum}
               onChange={(e) => {
                 const v = e.target.value;
-                if (/^\d*$/.test(v)) setTimeQuantum(v);
+                if (/^\d*$/.test(v))
+                  setSettings((prev) => ({
+                    ...prev,
+                    timeQuantum: Number(v),
+                  }));
               }}
             />
             <label>Time Quantum</label>

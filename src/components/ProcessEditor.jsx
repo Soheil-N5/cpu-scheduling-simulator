@@ -11,8 +11,8 @@ export default function ProcessEditor({ processes, setProcesses }) {
       ...processes,
       {
         id: processes.length + 1,
-        arrivalTime: "0",
-        burstTime: "1",
+        arrivalTime: 0,
+        burstTime: 1,
       },
     ]);
   };
