@@ -2,6 +2,13 @@ export function sjf({
     processes,
     settings
 }) {
+    /* {
+      id: 1,
+      arrivalTime: 0,
+      burstTime: 0,
+      remainingTime: 0,
+      state: "new"
+    }*/
     const list = [...processes]
     let time = 0
     const timeline = []
