@@ -8,6 +8,7 @@ import { fcfs } from "./algorithms/FCFS";
 import { sjf } from "./algorithms/SJF";
 import { srtf } from "./algorithms/SRTF";
 import GanttChart from "./components/GanttChart";
+import { hrrn } from "./algorithms/HRRN";
 
 function App() {
   const [processes, setProcesses] = useState([
@@ -30,80 +31,80 @@ function App() {
   const [timeline, setTimeline] = useState([]);
   const [metrics, setMetrics] = useState(null);
   const handleRun = () => {
-  if (!algorithm) {
-    toast.error("Please select a scheduling algorithm");
-    return;
-  }
-
-  if (!processes || processes.length === 0) {
-    toast.error("Please add at least one process");
-    return;
-  }
-
-  for (const p of processes) {
-    if (p.arrivalTime < 0) {
-      toast.error(`Arrival Time of P${p.id} cannot be negative`);
+    if (!algorithm) {
+      toast.error("Please select a scheduling algorithm");
       return;
     }
 
-    if (p.burstTime <= 0) {
-      toast.error(`Burst Time of P${p.id} must be greater than 0`);
+    if (!processes || processes.length === 0) {
+      toast.error("Please add at least one process");
       return;
     }
-  }
 
-  if (settings.contextSwitch === "") {
-    toast.error("Context Switch is required");
-    return;
-  }
-
-  if (Number(settings.contextSwitch) < 0) {
-    toast.error("Context Switch must be ≥ 0");
-    return;
-  }
-
-  const readyProcesses = processes.map((p) => ({
-    ...p,
-    remainingTime: p.burstTime,
-    state: "ready",
-  }));
-
-  let res;
-
-  try {
-    switch (algorithm) {
-      case "fcfs":
-        res = fcfs({ processes: readyProcesses, settings });
-        break;
-
-      case "sjf":
-        res = sjf({ processes: readyProcesses, settings });
-        break;
-
-      case "srtf":
-        res = srtf({ processes: readyProcesses, settings });
-        break;
-
-      default:
-        toast.error("Unknown algorithm selected");
+    for (const p of processes) {
+      if (p.arrivalTime < 0) {
+        toast.error(`Arrival Time of P${p.id} cannot be negative`);
         return;
+      }
+
+      if (p.burstTime <= 0) {
+        toast.error(`Burst Time of P${p.id} must be greater than 0`);
+        return;
+      }
     }
 
-    if (!res || !Array.isArray(res.timeline)) {
-      toast.error("Algorithm returned invalid result");
+    if (settings.contextSwitch === "") {
+      toast.error("Context Switch is required");
       return;
     }
 
-    setTimeline(res.timeline);
-    setMetrics(res.metrics);
-    toast.success("Processes executed successfully");
+    if (Number(settings.contextSwitch) < 0) {
+      toast.error("Context Switch must be ≥ 0");
+      return;
+    }
 
-  } catch (error) {
-    console.error("Run error:", error);
-    toast.error("Unexpected error occurred while running the algorithm");
-  }
-};
+    const readyProcesses = processes.map((p) => ({
+      ...p,
+      remainingTime: p.burstTime,
+      state: "ready",
+    }));
 
+    let res;
+
+    try {
+      switch (algorithm) {
+        case "fcfs":
+          res = fcfs({ processes: readyProcesses, settings });
+          break;
+
+        case "sjf":
+          res = sjf({ processes: readyProcesses, settings });
+          break;
+
+        case "srtf":
+          res = srtf({ processes: readyProcesses, settings });
+          break;
+        case "hrrn":
+          res = hrrn({ processes: readyProcesses, settings });
+          break;
+        default:
+          toast.error("Unknown algorithm selected");
+          return;
+      }
+
+      if (!res || !Array.isArray(res.timeline)) {
+        toast.error("Algorithm returned invalid result");
+        return;
+      }
+
+      setTimeline(res.timeline);
+      setMetrics(res.metrics);
+      toast.success("Processes executed successfully");
+    } catch (error) {
+      console.error("Run error:", error);
+      toast.error("Unexpected error occurred while running the algorithm");
+    }
+  };
 
   return (
     <>
