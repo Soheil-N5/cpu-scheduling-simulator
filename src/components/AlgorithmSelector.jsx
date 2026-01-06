@@ -5,23 +5,27 @@ export default function AlgorithmSelector({
   setSettings,
   handleRun,
   settings,
+  algorithm,
 }) {
-  const [preemptive, setPreemptive] = useState(false);
+  const [needsQuantum, setNeedsQuantum] = useState(false);
 
   const algorithms = [
-    { value: "fcfs", label: "FCFS" },
-    { value: "sjf", label: "SJF" },
-    { value: "srtf", label: "SRTF" },
-    { value: "hrrn", label: "HRRN" },
-    { value: "rr", label: "Round Robin" },
-    { value: "mlq", label: "MLQ" },
-    { value: "mlfq", label: "MLFQ" },
+    { value: "fcfs", label: "FCFS / FIFO", quantum: false },
+    { value: "spn", label: "SPN (Non-Preemptive SJF)", quantum: false },
+    { value: "srtf", label: "SRTF (Preemptive SJF)", quantum: false },
+    { value: "hrrn", label: "HRRN", quantum: false },
+    { value: "rr", label: "Round Robin", quantum: true },
+    { value: "mlq", label: "MLQ", quantum: true },
+    { value: "mlfq", label: "MLFQ", quantum: true },
   ];
+  const needsQueues = algorithm === "mlq" || algorithm === "mlfq";
 
   const changeAlgorithm = (e) => {
     const value = e.target.value;
     setAlgorithm(value);
-    setPreemptive(value === "rr");
+
+    const algo = algorithms.find((a) => a.value === value);
+    setNeedsQuantum(algo?.quantum ?? false);
   };
 
   return (
@@ -41,7 +45,7 @@ export default function AlgorithmSelector({
             Context Switch: <strong>{settings.contextSwitch || "-"}</strong>
           </span>
 
-          {preemptive && (
+          {needsQuantum && (
             <span className="tag accent">
               Time Quantum: <strong>{settings.timeQuantum || "-"}</strong>
             </span>
@@ -68,7 +72,7 @@ export default function AlgorithmSelector({
           <label>Context Switch</label>
         </div>
 
-        {preemptive && (
+        {needsQuantum && (
           <div className="field">
             <input
               type="text"
@@ -85,6 +89,58 @@ export default function AlgorithmSelector({
               }}
             />
             <label>Time Quantum</label>
+          </div>
+        )}
+        {needsQueues && (
+          <div className="queues-config">
+            <h4>Queue Configuration</h4>
+
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="queue-row">
+                <span>Queue {i + 1}</span>
+
+                <select
+                  value={settings.queues[i]?.algorithm || "fcfs"}
+                  onChange={(e) => {
+                    const algo = e.target.value;
+                    setSettings((prev) => {
+                      const newQueues = [...prev.queues];
+                      newQueues[i] = {
+                        ...newQueues[i],
+                        algorithm: algo,
+                      };
+                      return { ...prev, queues: newQueues };
+                    });
+                  }}
+                >
+                  <option value="rr">Round Robin</option>
+                  <option value="fcfs">FCFS</option>
+                </select>
+
+                {settings.queues[i]?.algorithm === "rr" && i < 3 && (
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="Quantum"
+                    value={settings.queues[i]?.timeQuantum || ""}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      if (/^\d*$/.test(v))
+                        setSettings((prev) => {
+                          const newQueues = [...prev.queues];
+                          newQueues[i] = {
+                            ...newQueues[i],
+                            timeQuantum: Number(v),
+                          };
+                          return { ...prev, queues: newQueues };
+                        });
+                    }}
+                  />
+                )}
+
+                {i === 3 && <span className="note">Non-Preemptive</span>}
+              </div>
+            ))}
           </div>
         )}
 

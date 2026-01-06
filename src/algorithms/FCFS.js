@@ -32,7 +32,15 @@ export function fcfs({
             })
             time += Number(settings.contextSwitch)
         }
+        if (settings.contextSwitch > 0) {
+            timeline.push({
+                label: `CS`,
+                start: time,
+                end: time + Number(settings.contextSwitch),
 
+            })
+            time += Number(settings.contextSwitch)
+        }
     }
     return {
         timeline,

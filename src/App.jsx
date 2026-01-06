@@ -5,11 +5,11 @@ import AlgorithmSelector from "./components/AlgorithmSelector";
 import ProcessEditor from "./components/ProcessEditor";
 import toast from "react-hot-toast";
 import { fcfs } from "./algorithms/FCFS";
-import { sjf } from "./algorithms/SJF";
+import { spn } from "./algorithms/SPN";
 import { srtf } from "./algorithms/SRTF";
 import GanttChart from "./components/GanttChart";
 import { hrrn } from "./algorithms/HRRN";
-
+import { rr } from "./algorithms/RR";
 function App() {
   const [processes, setProcesses] = useState([
     {
@@ -24,8 +24,13 @@ function App() {
   const [algorithm, setAlgorithm] = useState("");
   const [settings, setSettings] = useState({
     contextSwitch: 0,
-    timeQuantum: 0,
-    queues: [],
+    timeQuantum: 2,
+    queues: [
+      { algorithm: "rr", timeQuantum: 2 },
+      { algorithm: "rr", timeQuantum: 4 },
+      { algorithm: "fcfs" },
+      { algorithm: "fcfs" },
+    ],
   });
 
   const [timeline, setTimeline] = useState([]);
@@ -77,8 +82,8 @@ function App() {
           res = fcfs({ processes: readyProcesses, settings });
           break;
 
-        case "sjf":
-          res = sjf({ processes: readyProcesses, settings });
+        case "spn":
+          res = spn({ processes: readyProcesses, settings });
           break;
 
         case "srtf":
@@ -87,6 +92,10 @@ function App() {
         case "hrrn":
           res = hrrn({ processes: readyProcesses, settings });
           break;
+        case "rr":
+          res = rr({ processes: readyProcesses, settings });
+          break;
+
         default:
           toast.error("Unknown algorithm selected");
           return;

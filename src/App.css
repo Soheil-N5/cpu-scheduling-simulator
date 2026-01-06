@@ -174,7 +174,6 @@ input {
   border-radius: var(--radius-sm);
   font-size: 14px;
   transition: all 0.2s ease;
-  
 }
 
 select:hover,
@@ -352,10 +351,10 @@ p {
 
   overflow-x: auto;
 }
-.gantt-section{
-  display:flex;
-  flex-direction:column;
-  gap:18px
+.gantt-section {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 .gantt-block {
   position: relative;
@@ -414,4 +413,75 @@ p {
 .gantt-block.idle {
   background: var(--color-bg);
   color: var(--color-text-muted);
+}
+
+/*
+   Queue Configuration (MLQ / MLFQ)
+*/
+
+.queues-config {
+  margin-top: 16px;
+  padding: 16px;
+  background: linear-gradient(
+    180deg,
+    var(--color-surface),
+    var(--color-surface-alt)
+  );
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.queues-config h4 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text);
+  letter-spacing: 0.3px;
+}
+
+.queue-row {
+  display: grid;
+  grid-template-columns: 72px 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+
+  padding: 10px 12px;
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+
+  transition: all 0.2s ease;
+}
+
+.queue-row:hover {
+  border-color: rgba(79, 124, 255, 0.45);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.queue-row span {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.queue-row select {
+  min-width: 120px;
+}
+
+.queue-row input {
+  width: 80px;
+  text-align: center;
+}
+
+.queue-row .note {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(79, 124, 255, 0.15);
+  border: 1px solid rgba(79, 124, 255, 0.4);
+  color: #cfd8ff;
 }

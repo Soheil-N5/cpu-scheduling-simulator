@@ -1,7 +1,8 @@
-export function sjf({
+export function spn({
     processes,
     settings
 }) {
+
     /* {
       id: 1,
       arrivalTime: 0,

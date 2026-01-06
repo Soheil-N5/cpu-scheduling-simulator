@@ -49,6 +49,19 @@ export function srtf({
         p.remainingTime--
         time += 1
     }
+    if (
+        settings.contextSwitch > 0 &&
+        timeline.length > 0 &&
+        timeline[timeline.length - 1].label.startsWith("P")
+    ) {
+        const last = timeline[timeline.length - 1];
+        timeline.push({
+            label: "CS",
+            start: last.end,
+            end: last.end + Number(settings.contextSwitch),
+        });
+    }
+
     return {
         timeline,
         metrics: null
