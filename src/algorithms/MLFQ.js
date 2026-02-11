@@ -1,12 +1,13 @@
 export function mlfq({ processes, settings }) {
-  const queues = settings.queues;
+  const queues = settings.queues || [];
   const cs = Number(settings.contextSwitch || 0);
+  const boostInterval = Number(settings.boostInterval || 0);
 
   const all = processes.map(p => ({
     ...p,
-    queueLevel: Number(p.queueLevel ?? 0),
-    remainingTime: p.remainingTime ?? p.burstTime,
+    remainingTime: Number(p.remainingTime ?? p.burstTime),
     added: false,
+    queueLevel: 0, 
   }));
 
   const ready = queues.map(() => []);
@@ -17,13 +18,16 @@ export function mlfq({ processes, settings }) {
   const n = all.length;
   let lastLabel = null;
 
+  let nextBoostTime = boostInterval > 0 ? boostInterval : Infinity;
+
   const addArrivals = () => {
-    all.forEach(p => {
+    for (const p of all) {
       if (!p.added && p.arrivalTime <= time) {
-        ready[p.queueLevel].push(p);
+        p.queueLevel = 0;       
+        ready[0].push(p);
         p.added = true;
       }
-    });
+    }
   };
 
   const highestQueue = () => {
@@ -33,37 +37,73 @@ export function mlfq({ processes, settings }) {
     return -1;
   };
 
+  const nextNotAddedArrival = () => {
+    let m = Infinity;
+    for (const p of all) {
+      if (!p.added && p.remainingTime > 0 && p.arrivalTime < m) m = p.arrivalTime;
+    }
+    return m;
+  };
+
+  const doBoost = () => {
+    for (let lvl = 1; lvl < ready.length; lvl++) {
+      while (ready[lvl].length) {
+        const p = ready[lvl].shift();
+        p.queueLevel = 0;
+        ready[0].push(p);
+      }
+    }
+    nextBoostTime = boostInterval > 0 ? time + boostInterval : Infinity;
+  };
+
   while (completed < n) {
     addArrivals();
+
+    if (time >= nextBoostTime) {
+      doBoost();
+      lastLabel = null; 
+      continue;
+    }
+
     const level = highestQueue();
 
     if (level === -1) {
-      time++;
+      const nextArrival = nextNotAddedArrival();
+      const nextEvent = Math.min(nextArrival, nextBoostTime);
+
+      if (nextEvent === Infinity) break; 
+      if (nextEvent > time) {
+        timeline.push({ label: "IDLE", start: time, end: nextEvent });
+        time = nextEvent;
+      } else {
+        time += 1;
+      }
       lastLabel = null;
       continue;
     }
 
-    const q = queues[level];
-    const algo = q.algorithm;
-    const quantum = algo === "rr" ? Number(q.timeQuantum) : Infinity;
-
+    const quantum = Number(queues[level].timeQuantum || 1);
     const p = ready[level].shift();
     const label = `P${p.id}`;
 
     if (cs > 0 && lastLabel && lastLabel !== label) {
       timeline.push({ label: "CS", start: time, end: time + cs });
       time += cs;
+      addArrivals();
+      if (time >= nextBoostTime) continue;
     }
 
     let exec = Math.min(quantum, p.remainingTime);
 
-    const nextArrival = Math.min(
-      ...all
-        .filter(x => !x.added)
-        .map(x => x.arrivalTime),
-      Infinity
-    );
-    if (nextArrival < time + exec) exec = nextArrival - time;
+    const nextArrival = nextNotAddedArrival();
+    const nextEvent = Math.min(nextArrival, nextBoostTime);
+
+    if (nextEvent < time + exec) exec = nextEvent - time;
+
+    if (exec <= 0) {
+      ready[level].unshift(p);
+      continue;
+    }
 
     timeline.push({ label, start: time, end: time + exec });
     time += exec;
@@ -71,10 +111,20 @@ export function mlfq({ processes, settings }) {
 
     addArrivals();
 
-    if (p.remainingTime > 0) {
-      ready[level].push(p);
-    } else {
+    if (p.remainingTime <= 0) {
       completed++;
+      lastLabel = label;
+      continue;
+    }
+
+    const usedFullQuantum = exec === quantum;
+
+    if (usedFullQuantum && level < ready.length - 1) {
+      p.queueLevel = level + 1;         
+      ready[level + 1].push(p);
+    } else {
+      p.queueLevel = level;
+      ready[level].push(p);
     }
 
     lastLabel = label;

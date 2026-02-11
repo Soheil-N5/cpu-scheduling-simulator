@@ -11,7 +11,7 @@ export function hrrn({
     let readyQueue = [];
 
     while (list.length > 0 || readyQueue.length > 0) {
-
+        
         while (list.length > 0 && list[0].arrivalTime <= time) {
             readyQueue.push(list.shift());
         }

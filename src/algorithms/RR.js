@@ -1,20 +1,24 @@
-export function rr({ processes, settings }) {
+export function rr({
+  processes,
+  settings
+}) {
   const timeQuantum = Number(settings.timeQuantum);
   const contextSwitch = Number(settings.contextSwitch) || 0;
 
-  const all = processes.map(p => ({ ...p }));
+  const all = processes.map(p => ({
+    ...p
+  })).sort((a, b) => a.arrivalTime - b.arrivalTime);;
 
-  all.sort((a, b) => a.arrivalTime - b.arrivalTime);
 
   const readyQueue = [];
   const timeline = [];
 
   let time = 0;
-  let index = 0;     
-  let completed = 0;
+  let index = 0;
   const n = all.length;
 
-  while (completed < n) {
+
+  while (all.some(p => p.remainingTime > 0)) {
     while (index < n && all[index].arrivalTime <= time) {
       readyQueue.push(all[index]);
       index++;
@@ -49,13 +53,18 @@ export function rr({ processes, settings }) {
       index++;
     }
 
-    if (p.remainingTime > 0) {
+    if (p.remainingTime > 0)
       readyQueue.push(p);
-    } else {
-      completed++;
-    }
 
-    if ((readyQueue.length > 0 || index < n) && contextSwitch > 0) {
+    const last = timeline[timeline.length - 1];
+
+    if (
+      contextSwitch > 0 &&
+      last &&
+      last.label.startsWith("P") &&
+      readyQueue.length > 0 &&
+      `P${readyQueue[0].id}` !== last.label
+    ) {
       timeline.push({
         label: "CS",
         start: time,

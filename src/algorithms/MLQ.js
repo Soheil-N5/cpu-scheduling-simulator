@@ -5,7 +5,6 @@ export function mlq({ processes, settings }) {
   const all = processes.map(p => ({
     ...p,
     queueLevel: Number(p.queueLevel ?? 0),
-    remainingTime: p.remainingTime ?? p.burstTime,
     added: false,
   }));
 
@@ -38,10 +37,26 @@ export function mlq({ processes, settings }) {
     const level = highestQueue();
 
     if (level === -1) {
-      time++;
+      const nextArrival = Math.min(
+        ...all
+          .filter(p => !p.added && p.remainingTime > 0)
+          .map(p => p.arrivalTime),
+        Infinity
+      );
+
+      if (nextArrival === Infinity) break;
+
+      timeline.push({
+        label: "IDLE",
+        start: time,
+        end: nextArrival,
+      });
+
+      time = nextArrival;
       lastLabel = null;
       continue;
     }
+
 
     const q = queues[level];
     const algo = q.algorithm;
