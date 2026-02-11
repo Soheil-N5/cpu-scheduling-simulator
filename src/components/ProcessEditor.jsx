@@ -1,4 +1,4 @@
-export default function ProcessEditor({ processes, setProcesses }) {
+export default function ProcessEditor({ processes, setProcesses, algorithm }) {
   const updateProcess = (index, key, value) => {
     const next = processes.map((p, i) =>
       i === index ? { ...p, [key]: value } : p
@@ -20,7 +20,6 @@ export default function ProcessEditor({ processes, setProcesses }) {
   return (
     <div className="section-container">
       <div className="process-editor">
-       
         <div className="process-editor__header">
           <label className="process-editor__title">Process Editor</label>
           <button className="process-editor__add-btn" onClick={addProcess}>
@@ -30,7 +29,12 @@ export default function ProcessEditor({ processes, setProcesses }) {
 
         <div className="process-editor__list">
           {processes.map((p, index) => (
-            <div className="process-row" key={index}>
+            <div
+              className={`process-row ${
+                algorithm === "mlq" || algorithm === "mlfq" ? "has-queue" : ""
+              }`}
+              key={index}
+            >
               <div className="process-row__id">P{p.id}</div>
 
               <div className="process-row__field">
@@ -71,6 +75,23 @@ export default function ProcessEditor({ processes, setProcesses }) {
                   }}
                 />
               </div>
+              {(algorithm === "mlq" || algorithm === "mlfq") && (
+                <div className="process-row__field">
+                  <label className="process-row__label">Queue</label>
+                  <select
+                    className="process-row__input"
+                    value={p.queueLevel}
+                    onChange={(e) =>
+                      updateProcess(index, "queueLevel", Number(e.target.value))
+                    }
+                  >
+                    <option value={0}>Q1 (High)</option>
+                    <option value={1}>Q2</option>
+                    <option value={2}>Q3</option>
+                    <option value={3}>Q4 (System)</option>
+                  </select>
+                </div>
+              )}
 
               <button
                 className="process-row__remove-btn"

@@ -275,6 +275,9 @@ p {
 
   transition: all 0.2s ease;
 }
+.process-row.has-queue {
+  grid-template-columns: 64px 1fr 1fr 120px 36px;
+}
 
 .process-row:hover {
   border-color: rgba(79, 124, 255, 0.45);
@@ -485,3 +488,54 @@ p {
   border: 1px solid rgba(79, 124, 255, 0.4);
   color: #cfd8ff;
 }
+/* System / Locked Queue (Last Queue) */
+
+.queue-row.locked {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.02),
+    rgba(255, 255, 255, 0.01)
+  );
+  border-style: dashed;
+  opacity: 0.75;
+}
+
+.queue-row.locked:hover {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.025),
+    rgba(255, 255, 255, 0.015)
+  );
+  border-color: var(--color-border);
+}
+.system-badge {
+  margin-left: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  padding: 3px 7px;
+  border-radius: 999px;
+
+  background: rgba(154, 164, 199, 0.15);
+  border: 1px solid rgba(154, 164, 199, 0.4);
+  color: var(--color-text-muted);
+}
+.queue-desc {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  opacity: 0.8;
+  margin-top: 2px;
+}
+.queue-row.locked select {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--color-bg),
+    var(--color-bg) 6px,
+    rgba(255, 255, 255, 0.03) 6px,
+    rgba(255, 255, 255, 0.03) 12px
+  );
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+

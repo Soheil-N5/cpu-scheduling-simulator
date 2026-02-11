@@ -12,11 +12,11 @@ export default function AlgorithmSelector({
   const algorithms = [
     { value: "fcfs", label: "FCFS / FIFO", quantum: false },
     { value: "spn", label: "SPN (Non-Preemptive SJF)", quantum: false },
-    { value: "srtf", label: "SRTF (Preemptive SJF)", quantum: false },
+    { value: "srtf", label: "SRTF (Preemptive SJF)", quantum: true },
     { value: "hrrn", label: "HRRN", quantum: false },
     { value: "rr", label: "Round Robin", quantum: true },
-    { value: "mlq", label: "MLQ", quantum: true },
-    { value: "mlfq", label: "MLFQ", quantum: true },
+    { value: "mlq", label: "MLQ", quantum: false },
+    { value: "mlfq", label: "MLFQ", quantum:false },
   ];
   const needsQueues = algorithm === "mlq" || algorithm === "mlfq";
 
@@ -95,52 +95,61 @@ export default function AlgorithmSelector({
           <div className="queues-config">
             <h4>Queue Configuration</h4>
 
-            {[0, 1, 2, 3].map((i) => (
-              <div key={i} className="queue-row">
-                <span>Queue {i + 1}</span>
+            {[0, 1, 2, 3].map((i) => {
+              const isLast = i === 3;
 
-                <select
-                  value={settings.queues[i]?.algorithm || "fcfs"}
-                  onChange={(e) => {
-                    const algo = e.target.value;
-                    setSettings((prev) => {
-                      const newQueues = [...prev.queues];
-                      newQueues[i] = {
-                        ...newQueues[i],
-                        algorithm: algo,
-                      };
-                      return { ...prev, queues: newQueues };
-                    });
-                  }}
-                >
-                  <option value="rr">Round Robin</option>
-                  <option value="fcfs">FCFS</option>
-                </select>
+              return (
+                <div key={i} className={`queue-row ${isLast ? "locked" : ""}`}>
+                  <div className="queue-info">
+                    <span className="queue-title">
+                      Queue {i + 1}
+                    </span>
+                  
+                  </div>
 
-                {settings.queues[i]?.algorithm === "rr" && i < 3 && (
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    placeholder="Quantum"
-                    value={settings.queues[i]?.timeQuantum || ""}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      if (/^\d*$/.test(v))
+                  <div className="queue-controls">
+                    <select
+                      value={
+                        isLast ? "fcfs" : settings.queues[i]?.algorithm || "rr"
+                      }
+                      disabled={isLast}
+                      onChange={(e) => {
+                        const algo = e.target.value;
                         setSettings((prev) => {
                           const newQueues = [...prev.queues];
-                          newQueues[i] = {
-                            ...newQueues[i],
-                            timeQuantum: Number(v),
-                          };
+                          newQueues[i] = { ...newQueues[i], algorithm: algo };
                           return { ...prev, queues: newQueues };
                         });
-                    }}
-                  />
-                )}
+                      }}
+                    >
+                      <option value="rr">Round Robin</option>
+                      <option value="fcfs">FCFS</option>
+                    </select>
 
-                {i === 3 && <span className="note">Non-Preemptive</span>}
-              </div>
-            ))}
+                    {!isLast && settings.queues[i]?.algorithm === "rr" && (
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="Quantum"
+                        value={settings.queues[i]?.timeQuantum || ""}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          if (/^\d*$/.test(v))
+                            setSettings((prev) => {
+                              const newQueues = [...prev.queues];
+                              newQueues[i] = {
+                                ...newQueues[i],
+                                timeQuantum: Number(v),
+                              };
+                              return { ...prev, queues: newQueues };
+                            });
+                        }}
+                      />
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
 

@@ -10,18 +10,20 @@ import { srtf } from "./algorithms/SRTF";
 import GanttChart from "./components/GanttChart";
 import { hrrn } from "./algorithms/HRRN";
 import { rr } from "./algorithms/RR";
+import { mlfq } from "./algorithms/MLFQ";
+import { mlq } from "./algorithms/MLQ";
 function App() {
   const [processes, setProcesses] = useState([
     {
-      id: 1,
+      id: "1",
       arrivalTime: 0,
-      burstTime: 0,
-      remainingTime: 0,
-      state: "new",
+      burstTime: 8,
+      remainingTime: 8,
+      queueLevel: 0,
     },
   ]);
 
-  const [algorithm, setAlgorithm] = useState("");
+  const [algorithm, setAlgorithm] = useState("fcfs");
   const [settings, setSettings] = useState({
     contextSwitch: 0,
     timeQuantum: 2,
@@ -95,7 +97,12 @@ function App() {
         case "rr":
           res = rr({ processes: readyProcesses, settings });
           break;
-
+        case "mlfq":
+          res = mlfq({ processes: readyProcesses, settings });
+          break;
+        case "mlq":
+          res = mlq({ processes: readyProcesses, settings });
+          break;
         default:
           toast.error("Unknown algorithm selected");
           return;
@@ -140,10 +147,14 @@ function App() {
             setSettings={setSettings}
             handleRun={handleRun}
           />
-          <ProcessEditor processes={processes} setProcesses={setProcesses} />{" "}
+          <ProcessEditor
+            processes={processes}
+            setProcesses={setProcesses}
+            algorithm={algorithm}
+          />{" "}
           <GanttChart timeline={timeline} />{" "}
         </main>{" "}
-      </div>{" "}
+      </div>
     </>
   );
 }
