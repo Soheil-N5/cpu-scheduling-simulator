@@ -3,7 +3,8 @@ export function mlfq({ processes, settings }) {
   const levels = queues.length;
 
   const cs = Number(settings.contextSwitch || 0);
-
+  let lastExecutedLabel = null;
+  let csJustHappened =false;
   const all = processes.map(p => ({
     ...p,
     id: p.id,
@@ -24,7 +25,6 @@ export function mlfq({ processes, settings }) {
   let time = 0;
   let completed = 0;
   const n = all.length;
-  let lastRunLabel = null;
 
   const addArrivals = () => {
     for (const p of all) {
@@ -59,7 +59,8 @@ export function mlfq({ processes, settings }) {
       if (nextA === Infinity) break;
       pushOrExtend(timeline, "IDLE", time, nextA);
       time = nextA;
-      lastRunLabel = null;
+      lastExecutedLabel = null;
+      csJustHappened = false;
       continue;
     }
 
@@ -74,11 +75,16 @@ export function mlfq({ processes, settings }) {
     const chosen = pickProcess(ready[level], algo, time);
     const label = `P${chosen.id}`;
 
-    if (cs > 0 && lastRunLabel && lastRunLabel !== label) {
+    // Context switch فقط وقتی از یک اجرای واقعی به اجرای واقعی دیگری می‌رویم
+    if (cs > 0 && !csJustHappened && lastExecutedLabel && lastExecutedLabel !== label) {
       pushOrExtend(timeline, "CS", time, time + cs);
       time += cs;
       addArrivals();
+
+      csJustHappened = true;
+      continue;
     }
+
 
     if (chosen.firstStartTime === null) chosen.firstStartTime = time;
 
@@ -92,6 +98,8 @@ export function mlfq({ processes, settings }) {
     chosen.remainingTime -= exec;
 
     addArrivals();
+    csJustHappened = false;
+    lastExecutedLabel = label;
 
     const idx = ready[level].findIndex(x => x.id === chosen.id);
     if (idx >= 0) ready[level].splice(idx, 1);
@@ -99,7 +107,6 @@ export function mlfq({ processes, settings }) {
     if (chosen.remainingTime === 0) {
       chosen.completionTime = time;
       completed++;
-      lastRunLabel = label;
       continue;
     }
 
@@ -113,7 +120,6 @@ export function mlfq({ processes, settings }) {
       ready[level].push(chosen);
     }
 
-    lastRunLabel = label;
   }
 
   if (cs > 0 && timeline.length && timeline[timeline.length - 1].label.startsWith("P")) {

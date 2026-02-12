@@ -17,7 +17,7 @@ export default function AlgorithmSelector({
 
   const queueAlgorithmOptions = [
     { value: "fcfs", label: "FCFS" },
-    { value: "spn", label: "SPN (SJF)" },
+    { value: "spn", label: "SPN " },
     { value: "srtf", label: "SRTF" },
     { value: "hrrn", label: "HRRN" },
     { value: "rr", label: "Round Robin" },
@@ -27,7 +27,7 @@ export default function AlgorithmSelector({
   const needsQuantum = !!algoMeta?.quantum;
   const needsQueues = algorithm === "mlq" || algorithm === "mlfq";
 
-  const queues = settings.queues?.length ? settings.queues : [{}, {}, {}, {}];
+  const queues =  settings.queues;
 
   const changeAlgorithm = (e) => {
     const value = e.target.value;

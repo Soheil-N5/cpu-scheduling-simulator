@@ -113,7 +113,6 @@ function App() {
         toast.error("Algorithm returned invalid result");
         return;
       }
-      console.log("RESULT:", res);
 
       setTimeline(res.timeline);
       setMetrics(res.metrics);
