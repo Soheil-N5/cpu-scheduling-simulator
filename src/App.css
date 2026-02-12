@@ -539,3 +539,90 @@ p {
   opacity: 0.7;
 }
 
+/*
+   Metrics
+*/
+
+.metrics-section {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.metrics-left {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+
+.metrics-tags {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+.metrics-card {
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+  transition: all 0.2s ease;
+}
+
+.metrics-card:hover {
+  border-color: rgba(79, 124, 255, 0.45);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.metrics-card__label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.metrics-card__value {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--color-text);
+  letter-spacing: 0.2px;
+}
+
+.metrics-card.accent {
+  background: rgba(79, 124, 255, 0.15);
+  border-color: rgba(79, 124, 255, 0.4);
+}
+
+.metrics-right {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  min-width: 220px;
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+  .metrics-tags {
+    grid-template-columns: repeat(3, minmax(160px, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .metrics-section {
+    flex-direction: column;
+  }
+  .metrics-right {
+    min-width: unset;
+    justify-content: flex-start;
+  }
+  .metrics-tags {
+    grid-template-columns: repeat(2, minmax(160px, 1fr));
+  }
+}

@@ -12,6 +12,7 @@ import { hrrn } from "./algorithms/HRRN";
 import { rr } from "./algorithms/RR";
 import { mlfq } from "./algorithms/MLFQ";
 import { mlq } from "./algorithms/MLQ";
+import MetricsPanel from "./components/metrix";
 function App() {
   const [processes, setProcesses] = useState([
     {
@@ -112,13 +113,14 @@ function App() {
         toast.error("Algorithm returned invalid result");
         return;
       }
+      console.log("RESULT:", res);
 
       setTimeline(res.timeline);
       setMetrics(res.metrics);
       toast.success("Processes executed successfully");
     } catch (error) {
       console.error("Run error:", error);
-      toast.error("Unexpected error occurred while running the algorithm");
+      toast.error("Unexpected error ");
     }
   };
 
@@ -152,7 +154,8 @@ function App() {
             setProcesses={setProcesses}
             algorithm={algorithm}
           />{" "}
-          <GanttChart timeline={timeline} />{" "}
+          <GanttChart timeline={timeline} />
+          <MetricsPanel metrics={metrics}/>
         </main>{" "}
       </div>
     </>

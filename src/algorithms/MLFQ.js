@@ -1,29 +1,35 @@
 export function mlfq({ processes, settings }) {
-  const queues = settings.queues || [];
+  const queues = settings.queues || [{}, {}, {}, {}];
+  const levels = queues.length;
+
   const cs = Number(settings.contextSwitch || 0);
-  const boostInterval = Number(settings.boostInterval || 0);
 
   const all = processes.map(p => ({
     ...p,
+    id: p.id,
+    arrivalTime: Number(p.arrivalTime),
+    burstTime: Number(p.burstTime),
     remainingTime: Number(p.remainingTime ?? p.burstTime),
+
+    queueLevel: 0,
     added: false,
-    queueLevel: 0, 
+
+    firstStartTime: null,
+    completionTime: null,
   }));
 
-  const ready = queues.map(() => []);
+  const ready = Array.from({ length: levels }, () => []);
   const timeline = [];
 
   let time = 0;
   let completed = 0;
   const n = all.length;
-  let lastLabel = null;
-
-  let nextBoostTime = boostInterval > 0 ? boostInterval : Infinity;
+  let lastRunLabel = null;
 
   const addArrivals = () => {
     for (const p of all) {
       if (!p.added && p.arrivalTime <= time) {
-        p.queueLevel = 0;       
+        p.queueLevel = 0;
         ready[0].push(p);
         p.added = true;
       }
@@ -37,98 +43,157 @@ export function mlfq({ processes, settings }) {
     return -1;
   };
 
-  const nextNotAddedArrival = () => {
-    let m = Infinity;
-    for (const p of all) {
-      if (!p.added && p.remainingTime > 0 && p.arrivalTime < m) m = p.arrivalTime;
-    }
-    return m;
-  };
-
-  const doBoost = () => {
-    for (let lvl = 1; lvl < ready.length; lvl++) {
-      while (ready[lvl].length) {
-        const p = ready[lvl].shift();
-        p.queueLevel = 0;
-        ready[0].push(p);
-      }
-    }
-    nextBoostTime = boostInterval > 0 ? time + boostInterval : Infinity;
+  const nextArrivalTime = () => {
+    return Math.min(
+      ...all.filter(p => !p.added && p.remainingTime > 0).map(p => p.arrivalTime),
+      Infinity
+    );
   };
 
   while (completed < n) {
     addArrivals();
-
-    if (time >= nextBoostTime) {
-      doBoost();
-      lastLabel = null; 
-      continue;
-    }
-
     const level = highestQueue();
 
     if (level === -1) {
-      const nextArrival = nextNotAddedArrival();
-      const nextEvent = Math.min(nextArrival, nextBoostTime);
-
-      if (nextEvent === Infinity) break; 
-      if (nextEvent > time) {
-        timeline.push({ label: "IDLE", start: time, end: nextEvent });
-        time = nextEvent;
-      } else {
-        time += 1;
-      }
-      lastLabel = null;
+      const nextA = nextArrivalTime();
+      if (nextA === Infinity) break;
+      pushOrExtend(timeline, "IDLE", time, nextA);
+      time = nextA;
+      lastRunLabel = null;
       continue;
     }
 
-    const quantum = Number(queues[level].timeQuantum || 1);
-    const p = ready[level].shift();
-    const label = `P${p.id}`;
+    const cfg = queues[level] || {};
+    const algo = (cfg.algorithm || (level === levels - 1 ? "fcfs" : "rr")).toLowerCase();
 
-    if (cs > 0 && lastLabel && lastLabel !== label) {
-      timeline.push({ label: "CS", start: time, end: time + cs });
+    const quantum =
+      (algo === "rr" || algo === "srtf")
+        ? Number(cfg.timeQuantum || settings.timeQuantum || 1)
+        : Infinity;
+
+    const chosen = pickProcess(ready[level], algo, time);
+    const label = `P${chosen.id}`;
+
+    if (cs > 0 && lastRunLabel && lastRunLabel !== label) {
+      pushOrExtend(timeline, "CS", time, time + cs);
       time += cs;
       addArrivals();
-      if (time >= nextBoostTime) continue;
     }
 
-    let exec = Math.min(quantum, p.remainingTime);
+    if (chosen.firstStartTime === null) chosen.firstStartTime = time;
 
-    const nextArrival = nextNotAddedArrival();
-    const nextEvent = Math.min(nextArrival, nextBoostTime);
+    let exec = Math.min(quantum, chosen.remainingTime);
 
-    if (nextEvent < time + exec) exec = nextEvent - time;
+    const nextA = nextArrivalTime();
+    if (nextA < time + exec) exec = nextA - time;
 
-    if (exec <= 0) {
-      ready[level].unshift(p);
-      continue;
-    }
-
-    timeline.push({ label, start: time, end: time + exec });
+    pushOrExtend(timeline, label, time, time + exec);
     time += exec;
-    p.remainingTime -= exec;
+    chosen.remainingTime -= exec;
 
     addArrivals();
 
-    if (p.remainingTime <= 0) {
+    const idx = ready[level].findIndex(x => x.id === chosen.id);
+    if (idx >= 0) ready[level].splice(idx, 1);
+
+    if (chosen.remainingTime === 0) {
+      chosen.completionTime = time;
       completed++;
-      lastLabel = label;
+      lastRunLabel = label;
       continue;
     }
 
-    const usedFullQuantum = exec === quantum;
+    const consumedFullQuantum = exec === quantum && quantum !== Infinity;
 
-    if (usedFullQuantum && level < ready.length - 1) {
-      p.queueLevel = level + 1;         
-      ready[level + 1].push(p);
+    if (consumedFullQuantum && level < levels - 1) {
+      chosen.queueLevel = level + 1;
+      ready[level + 1].push(chosen);
     } else {
-      p.queueLevel = level;
-      ready[level].push(p);
+      chosen.queueLevel = level;
+      ready[level].push(chosen);
     }
 
-    lastLabel = label;
+    lastRunLabel = label;
   }
 
-  return { timeline, metrics: null };
+  if (cs > 0 && timeline.length && timeline[timeline.length - 1].label.startsWith("P")) {
+    const last = timeline[timeline.length - 1];
+    pushOrExtend(timeline, "CS", last.end, last.end + cs);
+  }
+
+  return {
+    timeline,
+    metrics: computeMetrics(all, timeline),
+  };
+}
+function pushOrExtend(timeline, label, start, end) {
+  if (end <= start) return;
+  const last = timeline[timeline.length - 1];
+  if (last && last.label === label && last.end === start) {
+    last.end = end;
+  } else {
+    timeline.push({ label, start, end });
+  }
+}
+
+function pickProcess(queue, algo, time) {
+  if (!queue.length) return null;
+
+  algo = (algo || "fcfs").toLowerCase();
+
+  if (algo === "fcfs" || algo === "rr") return queue[0];
+
+  if (algo === "spn") {
+    return queue.reduce((best, p) =>
+      p.burstTime < best.burstTime ? p : best
+    , queue[0]);
+  }
+
+  if (algo === "srtf") {
+    return queue.reduce((best, p) =>
+      p.remainingTime < best.remainingTime ? p : best
+    , queue[0]);
+  }
+
+  if (algo === "hrrn") {
+    return queue.reduce((best, p) => {
+      const rrBest = ((time - best.arrivalTime) + best.burstTime) / best.burstTime;
+      const rrP = ((time - p.arrivalTime) + p.burstTime) / p.burstTime;
+      return rrP > rrBest ? p : best;
+    }, queue[0]);
+  }
+
+  return queue[0];
+}
+
+function computeMetrics(all, timeline) {
+  const n = all.length;
+
+  let totalWaiting = 0;
+  let totalTurnaround = 0;
+  let totalResponse = 0;
+
+  for (const p of all) {
+    const tat = p.completionTime - p.arrivalTime;
+    const wt = tat - p.burstTime;
+    const rt = p.firstStartTime - p.arrivalTime;
+
+    totalTurnaround += tat;
+    totalWaiting += wt;
+    totalResponse += rt;
+  }
+
+  const totalTime = timeline.length ? timeline[timeline.length - 1].end : 0;
+
+  const busyTime = timeline
+    .filter(t => t.label !== "IDLE")
+    .reduce((sum, t) => sum + (t.end - t.start), 0);
+
+  return {
+    avgWaitingTime: n ? totalWaiting / n : 0,
+    avgTurnaroundTime: n ? totalTurnaround / n : 0,
+    avgResponseTime: n ? totalResponse / n : 0,
+    cpuUtilization: totalTime ? (busyTime / totalTime) * 100 : 0,
+    throughput: totalTime ? n / totalTime : 0,
+  };
 }

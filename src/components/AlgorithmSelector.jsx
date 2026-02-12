@@ -1,5 +1,3 @@
-import { useState } from "react";
-
 export default function AlgorithmSelector({
   setAlgorithm,
   setSettings,
@@ -7,8 +5,6 @@ export default function AlgorithmSelector({
   settings,
   algorithm,
 }) {
-  const [needsQuantum, setNeedsQuantum] = useState(false);
-
   const algorithms = [
     { value: "fcfs", label: "FCFS / FIFO", quantum: false },
     { value: "spn", label: "SPN (Non-Preemptive SJF)", quantum: false },
@@ -16,38 +12,49 @@ export default function AlgorithmSelector({
     { value: "hrrn", label: "HRRN", quantum: false },
     { value: "rr", label: "Round Robin", quantum: true },
     { value: "mlq", label: "MLQ", quantum: false },
-    { value: "mlfq", label: "MLFQ", quantum:false },
+    { value: "mlfq", label: "MLFQ", quantum: false },
   ];
+
+  const queueAlgorithmOptions = [
+    { value: "fcfs", label: "FCFS" },
+    { value: "spn", label: "SPN (SJF)" },
+    { value: "srtf", label: "SRTF" },
+    { value: "hrrn", label: "HRRN" },
+    { value: "rr", label: "Round Robin" },
+  ];
+
+  const algoMeta = algorithms.find(a => a.value === algorithm);
+  const needsQuantum = !!algoMeta?.quantum;
   const needsQueues = algorithm === "mlq" || algorithm === "mlfq";
+
+  const queues = settings.queues?.length ? settings.queues : [{}, {}, {}, {}];
 
   const changeAlgorithm = (e) => {
     const value = e.target.value;
     setAlgorithm(value);
-
-    const algo = algorithms.find((a) => a.value === value);
-    setNeedsQuantum(algo?.quantum ?? false);
   };
 
   return (
     <div className="section-container">
       <div className="left-content">
         <label>Algorithm</label>
-        <select onChange={changeAlgorithm}>
-          {algorithms.map((algo) => (
-            <option key={algo.value} value={algo.value}>
-              {algo.label}
+
+        <select value={algorithm} onChange={changeAlgorithm}>
+          {algorithms.map((a) => (
+            <option key={a.value} value={a.value}>
+              {a.label}
             </option>
           ))}
         </select>
 
         <div className="tags">
           <span className="tag accent">
-            Context Switch: <strong>{settings.contextSwitch || "-"}</strong>
+            Context Switch: <strong>{settings.contextSwitch ?? "-"}</strong>
           </span>
 
           {needsQuantum && (
             <span className="tag accent">
-              Time Quantum: <strong>{settings.timeQuantum || "-"}</strong>
+              Time Quantum: <strong>{settings.timeQuantum ?? "-"}</strong>
             </span>
           )}
         </div>
@@ -59,14 +66,15 @@ export default function AlgorithmSelector({
             type="text"
             inputMode="numeric"
             placeholder=" "
-            value={settings.contextSwitch}
+            value={settings.contextSwitch ?? ""}
             onChange={(e) => {
               const v = e.target.value;
-              if (/^\d*$/.test(v))
+              if (/^\d*$/.test(v)) {
                 setSettings((prev) => ({
                   ...prev,
-                  contextSwitch: Number(v),
+                  contextSwitch: v === "" ? "" : Number(v),
                 }));
+              }
             }}
           />
           <label>Context Switch</label>
@@ -78,71 +86,74 @@ export default function AlgorithmSelector({
               type="text"
               inputMode="numeric"
               placeholder=" "
-              value={settings.timeQuantum}
+              value={settings.timeQuantum ?? ""}
               onChange={(e) => {
                 const v = e.target.value;
-                if (/^\d*$/.test(v))
+                if (/^\d*$/.test(v)) {
                   setSettings((prev) => ({
                     ...prev,
-                    timeQuantum: Number(v),
+                    timeQuantum: v === "" ? "" : Number(v),
                   }));
+                }
               }}
             />
             <label>Time Quantum</label>
           </div>
         )}
+
         {needsQueues && (
           <div className="queues-config">
             <h4>Queue Configuration</h4>
 
             {[0, 1, 2, 3].map((i) => {
               const isLast = i === 3;
+              const queueAlgo = isLast ? "fcfs" : (queues[i]?.algorithm || "rr");
 
               return (
                 <div key={i} className={`queue-row ${isLast ? "locked" : ""}`}>
                   <div className="queue-info">
-                    <span className="queue-title">
-                      Queue {i + 1}
-                    </span>
-                  
+                    <span className="queue-title">Queue {i + 1}</span>
                   </div>
 
                   <div className="queue-controls">
                     <select
-                      value={
-                        isLast ? "fcfs" : settings.queues[i]?.algorithm || "rr"
-                      }
+                      value={queueAlgo}
                       disabled={isLast}
                       onChange={(e) => {
-                        const algo = e.target.value;
+                        const newAlgo = e.target.value;
                         setSettings((prev) => {
-                          const newQueues = [...prev.queues];
-                          newQueues[i] = { ...newQueues[i], algorithm: algo };
+                          const newQueues = (prev.queues?.length ? [...prev.queues] : [{}, {}, {}, {}]);
+                          newQueues[i] = { ...newQueues[i], algorithm: newAlgo };
+                          if (newAlgo !== "rr") newQueues[i].timeQuantum = "";
                           return { ...prev, queues: newQueues };
                         });
                       }}
                     >
-                      <option value="rr">Round Robin</option>
-                      <option value="fcfs">FCFS</option>
+                      {queueAlgorithmOptions.map(opt => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
                     </select>
 
-                    {!isLast && settings.queues[i]?.algorithm === "rr" && (
+                    {!isLast &&( queueAlgo === "rr"|| queueAlgo === "srtf") && (
                       <input
                         type="text"
                         inputMode="numeric"
                         placeholder="Quantum"
-                        value={settings.queues[i]?.timeQuantum || ""}
+                        value={queues[i]?.timeQuantum ?? ""}
                         onChange={(e) => {
                           const v = e.target.value;
-                          if (/^\d*$/.test(v))
+                          if (/^\d*$/.test(v)) {
                             setSettings((prev) => {
-                              const newQueues = [...prev.queues];
+                              const newQueues = (prev.queues?.length ? [...prev.queues] : [{}, {}, {}, {}]);
                               newQueues[i] = {
                                 ...newQueues[i],
-                                timeQuantum: Number(v),
+                                timeQuantum: v === "" ? "" : Number(v),
                               };
                               return { ...prev, queues: newQueues };
                             });
+                          }
                         }}
                       />
                     )}
